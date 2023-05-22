@@ -72,18 +72,15 @@ class KoiosChainContext(ChainContext):
             else kp.URLs(network='mainnet').url
         )
         self.api = kp.URLs(url=self._url)
-        #self._epoch_info = self.get.epoch_latest()
-        self.current_epoch_param = self.api.get_tip()
-        self.current_epoch = self.current_epoch_param[0]["epoch_no"]
-        self._epoch_info = self.api.get_epoch_info()[0]
+        self.current_epoch = self.api.get_tip()[0]["epoch_no"]
+        self._epoch_info = self.api.get_epoch_info(self.current_epoch)[0]
         self._epoch = None
         self._genesis_param = None
         self._protocol_param = None
 
     def _check_epoch_and_update(self):
         if int(time.time()) >= int(self._epoch_info['end_time']):
-            self.current_epoch_param = self.api.get_tip()
-            self.current_epoch = self.current_epoch_param[0]["epoch_no"]
+            self.current_epoch = self.api.get_tip()[0]["epoch_no"]
             self._epoch_info = self.api.get_epoch_info(self.current_epoch)[0]
             return True
         else:
