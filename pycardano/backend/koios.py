@@ -43,7 +43,7 @@ class KoiosChainContext(ChainContext):
         url (str): Base URL for the Koios API. Defaults Preprod url: https://preprod.koios.rest/api/v0/
     """
 
-    api: kp.URLs()
+    api: kp.URLs
     #_epoch_info: Namespace
     #_epoch_info: api.get_epoch_info(self=None)
     _epoch: Optional[int] = None
@@ -82,6 +82,8 @@ class KoiosChainContext(ChainContext):
 
     def _check_epoch_and_update(self):
         if int(time.time()) >= int(self._epoch_info['end_time']):
+            self.current_epoch_param = self.api.get_tip()
+            self.current_epoch = self.current_epoch_param[0]["epoch_no"]
             self._epoch_info = self.api.get_epoch_info(self.current_epoch)[0]
             return True
         else:
@@ -106,7 +108,19 @@ class KoiosChainContext(ChainContext):
     @property
     def genesis_param(self) -> GenesisParameters:
         if not self._genesis_param or self._check_epoch_and_update():
-            params = vars(self.api.get_genesis())
+            genesis_data = self.api.get_genesis()[0]
+            params = {
+                'active_slots_coefficient': float(genesis_data["activeslotcoeff"]),
+                'update_quorum': int(genesis_data["updatequorum"]),
+                'max_lovelace_supply': int(genesis_data["maxlovelacesupply"]),
+                'network_magic': int(genesis_data["networkmagic"]),
+                'epoch_length': int(genesis_data["epochlength"]),
+                'system_start': genesis_data["systemstart"],
+                'slots_per_kes_period': int(genesis_data["slotsperkesperiod"]),
+                'slot_length': int(genesis_data["slotlength"]),
+                'max_kes_evolutions': int(genesis_data["maxkesrevolutions"]),
+                'security_param': int(genesis_data["securityparam"])
+            }
             self._genesis_param = GenesisParameters(**params)
         return self._genesis_param
 
