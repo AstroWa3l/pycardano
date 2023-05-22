@@ -3,7 +3,7 @@
 cov_html
 docs/build
 dist
-
+*.ipynb
 # IDE
 .idea
 .code
